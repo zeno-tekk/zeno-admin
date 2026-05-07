@@ -1,0 +1,141 @@
+.borderGlowCard {
+  --edge-proximity: 0;
+  --cursor-angle: 45deg;
+  --edge-sensitivity: 30;
+  --color-sensitivity: calc(var(--edge-sensitivity) + 20);
+  --border-radius: 28px;
+  --glow-padding: 40px;
+  --cone-spread: 25;
+  --fill-opacity: 0.5;
+
+  position: relative;
+  display: grid;
+  border-radius: var(--border-radius);
+  isolation: isolate;
+  transform: translate3d(0, 0, 0.01px);
+  overflow: visible;
+  border: 1px solid var(--card-border, rgb(255 255 255 / 14%));
+  background: var(--card-bg, #060010);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.1),
+    0 2px 4px rgb(0 0 0 / 0.1),
+    0 4px 8px rgb(0 0 0 / 0.1),
+    0 8px 16px rgb(0 0 0 / 0.1),
+    0 16px 32px rgb(0 0 0 / 0.12),
+    0 32px 64px rgb(0 0 0 / 0.18);
+}
+
+.borderGlowCard::before,
+.borderGlowCard::after,
+.borderGlowCard > .edgeLight {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  transition: opacity 0.25s ease-out;
+}
+
+.borderGlowCard:not(:hover):not(.sweepActive)::before,
+.borderGlowCard:not(:hover):not(.sweepActive)::after,
+.borderGlowCard:not(:hover):not(.sweepActive) > .edgeLight {
+  opacity: 0;
+  transition: opacity 0.75s ease-in-out;
+}
+
+.borderGlowCard::before {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card-bg, #060010) 0 100%) padding-box,
+    linear-gradient(rgb(255 255 255 / 0%) 0 100%) border-box,
+    var(--gradient-one, radial-gradient(at 80% 55%, #c084fc 0, transparent 50%)) border-box,
+    var(--gradient-two, radial-gradient(at 69% 34%, #f472b6 0, transparent 50%)) border-box,
+    var(--gradient-three, radial-gradient(at 8% 6%, #38bdf8 0, transparent 50%)) border-box,
+    var(--gradient-four, radial-gradient(at 41% 38%, #c084fc 0, transparent 50%)) border-box,
+    var(--gradient-five, radial-gradient(at 86% 85%, #f472b6 0, transparent 50%)) border-box,
+    var(--gradient-six, radial-gradient(at 82% 18%, #38bdf8 0, transparent 50%)) border-box,
+    var(--gradient-seven, radial-gradient(at 51% 4%, #f472b6 0, transparent 50%)) border-box,
+    var(--gradient-base, linear-gradient(#c084fc 0 100%)) border-box;
+  opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  mask-image:
+    conic-gradient(
+      from var(--cursor-angle) at center,
+      black calc(var(--cone-spread) * 1%),
+      transparent calc((var(--cone-spread) + 15) * 1%),
+      transparent calc((100 - var(--cone-spread) - 15) * 1%),
+      black calc((100 - var(--cone-spread)) * 1%)
+    );
+}
+
+.borderGlowCard::after {
+  border: 1px solid transparent;
+  background:
+    var(--gradient-one, radial-gradient(at 80% 55%, #c084fc 0, transparent 50%)) padding-box,
+    var(--gradient-two, radial-gradient(at 69% 34%, #f472b6 0, transparent 50%)) padding-box,
+    var(--gradient-three, radial-gradient(at 8% 6%, #38bdf8 0, transparent 50%)) padding-box,
+    var(--gradient-four, radial-gradient(at 41% 38%, #c084fc 0, transparent 50%)) padding-box,
+    var(--gradient-five, radial-gradient(at 86% 85%, #f472b6 0, transparent 50%)) padding-box,
+    var(--gradient-six, radial-gradient(at 82% 18%, #38bdf8 0, transparent 50%)) padding-box,
+    var(--gradient-seven, radial-gradient(at 51% 4%, #f472b6 0, transparent 50%)) padding-box,
+    var(--gradient-base, linear-gradient(#c084fc 0 100%)) padding-box;
+  mask-image:
+    linear-gradient(to bottom, black, black),
+    radial-gradient(ellipse at 50% 50%, black 40%, transparent 65%),
+    radial-gradient(ellipse at 66% 66%, black 5%, transparent 40%),
+    radial-gradient(ellipse at 33% 33%, black 5%, transparent 40%),
+    radial-gradient(ellipse at 66% 33%, black 5%, transparent 40%),
+    radial-gradient(ellipse at 33% 66%, black 5%, transparent 40%),
+    conic-gradient(from var(--cursor-angle) at center, transparent 5%, black 15%, black 85%, transparent 95%);
+  mask-composite: subtract, add, add, add, add, add;
+  opacity: calc(var(--fill-opacity) * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  mix-blend-mode: soft-light;
+}
+
+.edgeLight {
+  inset: calc(var(--glow-padding) * -1);
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: plus-lighter;
+  opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+  mask-image:
+    conic-gradient(
+      from var(--cursor-angle) at center,
+      black 2.5%,
+      transparent 10%,
+      transparent 90%,
+      black 97.5%
+    );
+}
+
+.edgeLight::before {
+  content: "";
+  position: absolute;
+  inset: var(--glow-padding);
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--glow-color, rgb(91 111 232 / 1)),
+    inset 0 0 1px 0 var(--glow-color-60, rgb(91 111 232 / 0.6)),
+    inset 0 0 3px 0 var(--glow-color-50, rgb(91 111 232 / 0.5)),
+    inset 0 0 6px 0 var(--glow-color-40, rgb(91 111 232 / 0.4)),
+    inset 0 0 15px 0 var(--glow-color-30, rgb(91 111 232 / 0.3)),
+    inset 0 0 25px 2px var(--glow-color-20, rgb(91 111 232 / 0.2)),
+    inset 0 0 50px 2px var(--glow-color-10, rgb(91 111 232 / 0.1)),
+    0 0 1px 0 var(--glow-color-60, rgb(91 111 232 / 0.6)),
+    0 0 3px 0 var(--glow-color-50, rgb(91 111 232 / 0.5)),
+    0 0 6px 0 var(--glow-color-40, rgb(91 111 232 / 0.4)),
+    0 0 15px 0 var(--glow-color-30, rgb(91 111 232 / 0.3)),
+    0 0 25px 2px var(--glow-color-20, rgb(91 111 232 / 0.2)),
+    0 0 50px 2px var(--glow-color-10, rgb(91 111 232 / 0.1));
+}
+
+.borderGlowInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.sweepActive {}

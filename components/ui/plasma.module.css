@@ -1,0 +1,213 @@
+.plasma {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(12, 5, 24, 0.98) 0%, rgba(7, 2, 15, 1) 55%, rgba(4, 1, 10, 1) 100%);
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, transparent 28%, rgba(5, 1, 10, 0.18) 58%, rgba(5, 1, 10, 0.7) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.04));
+  pointer-events: none;
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 96px 96px;
+  mask-image: radial-gradient(circle at center, black 28%, transparent 82%);
+  pointer-events: none;
+}
+
+.noise {
+  position: absolute;
+  inset: -20%;
+  opacity: 0.12;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px),
+    radial-gradient(circle at 70% 55%, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px);
+  background-size: 180px 180px, 240px 240px, 220px 220px;
+  filter: blur(0.5px);
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  inset: auto;
+  mix-blend-mode: screen;
+  opacity: calc(var(--plasma-opacity) * 0.92);
+  filter: blur(34px);
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.orb::before,
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.orb::before {
+  background:
+    radial-gradient(circle at 50% 36%, rgba(var(--plasma-rgb), 0.98) 0%, rgba(var(--plasma-rgb), 0.76) 22%, rgba(var(--plasma-rgb), 0.34) 46%, transparent 72%);
+}
+
+.orb::after {
+  inset: 16%;
+  background:
+    radial-gradient(circle at 48% 38%, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.08) 35%, transparent 68%);
+  filter: blur(24px);
+}
+
+.orbOne {
+  top: -16%;
+  left: 14%;
+  width: min(42rem, 56vw);
+  height: min(60rem, 88vw);
+  border-radius: 46% 54% 58% 42% / 34% 42% 58% 66%;
+  transform:
+    translate3d(calc(var(--pointer-x) * 0.018), calc(var(--pointer-y) * 0.018), 0)
+    rotate(-14deg)
+    scale(calc(var(--plasma-scale) * 1.06));
+  animation:
+    plasma-drift-one var(--plasma-duration-a) ease-in-out infinite,
+    plasma-pulse calc(var(--plasma-duration-a) * 0.72) ease-in-out infinite;
+  animation-direction: var(--plasma-direction);
+}
+
+.orbTwo {
+  top: 20%;
+  left: 34%;
+  width: min(28rem, 40vw);
+  height: min(30rem, 44vw);
+  border-radius: 64% 36% 44% 56% / 52% 58% 42% 48%;
+  opacity: calc(var(--plasma-opacity) * 0.74);
+  transform:
+    translate3d(calc(var(--pointer-x) * -0.02), calc(var(--pointer-y) * 0.028), 0)
+    rotate(28deg)
+    scale(calc(var(--plasma-scale) * 0.82));
+  animation:
+    plasma-drift-two var(--plasma-duration-b) ease-in-out infinite,
+    plasma-pulse calc(var(--plasma-duration-b) * 0.9) ease-in-out infinite;
+  animation-direction: var(--plasma-direction);
+}
+
+.orbThree {
+  right: 12%;
+  top: 2%;
+  width: min(36rem, 48vw);
+  height: min(62rem, 80vw);
+  border-radius: 38% 62% 48% 52% / 34% 52% 48% 66%;
+  opacity: calc(var(--plasma-opacity) * 0.85);
+  transform:
+    translate3d(calc(var(--pointer-x) * -0.024), calc(var(--pointer-y) * -0.018), 0)
+    rotate(18deg)
+    scale(calc(var(--plasma-scale) * 1.04));
+  animation:
+    plasma-drift-three var(--plasma-duration-c) ease-in-out infinite,
+    plasma-pulse calc(var(--plasma-duration-c) * 0.78) ease-in-out infinite;
+  animation-direction: var(--plasma-direction);
+}
+
+.glow {
+  position: absolute;
+  inset: 18% 24% 20%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 64%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+@keyframes plasma-drift-one {
+  0% {
+    border-radius: 46% 54% 58% 42% / 34% 42% 58% 66%;
+    translate: 0 -2%;
+  }
+  50% {
+    border-radius: 52% 48% 44% 56% / 46% 34% 66% 54%;
+    translate: 3% 5%;
+  }
+  100% {
+    border-radius: 38% 62% 52% 48% / 36% 54% 46% 64%;
+    translate: -2% 10%;
+  }
+}
+
+@keyframes plasma-drift-two {
+  0% {
+    border-radius: 64% 36% 44% 56% / 52% 58% 42% 48%;
+    translate: -4% 0;
+  }
+  50% {
+    border-radius: 46% 54% 58% 42% / 40% 52% 48% 60%;
+    translate: 3% 8%;
+  }
+  100% {
+    border-radius: 58% 42% 36% 64% / 58% 42% 58% 42%;
+    translate: -1% -4%;
+  }
+}
+
+@keyframes plasma-drift-three {
+  0% {
+    border-radius: 38% 62% 48% 52% / 34% 52% 48% 66%;
+    translate: 0 0;
+  }
+  50% {
+    border-radius: 46% 54% 62% 38% / 50% 42% 58% 50%;
+    translate: -4% 7%;
+  }
+  100% {
+    border-radius: 54% 46% 40% 60% / 38% 58% 42% 62%;
+    translate: 4% -3%;
+  }
+}
+
+@keyframes plasma-pulse {
+  0%,
+  100% {
+    opacity: calc(var(--plasma-opacity) * 0.7);
+  }
+  50% {
+    opacity: var(--plasma-opacity);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    background-size: 64px 64px;
+  }
+
+  .orbOne {
+    top: -8%;
+    left: -6%;
+    width: 80vw;
+    height: 130vw;
+  }
+
+  .orbTwo {
+    top: 30%;
+    left: 26%;
+    width: 52vw;
+    height: 56vw;
+  }
+
+  .orbThree {
+    top: 4%;
+    right: -10%;
+    width: 72vw;
+    height: 120vw;
+  }
+}
