@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Eye, EyeOff, Mail, Lock, X, User, UserPlus } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
 export default function LoginPage() {
@@ -14,6 +14,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [signing, setSigning] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // 2FA OTP state
+  const [otpPending, setOtpPending] = useState(false)
+  const [otpEmail, setOtpEmail] = useState("")
+  const [otp, setOtp] = useState("")
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -21,6 +28,12 @@ export default function LoginPage() {
       router.replace("/admin")
     }
   }, [router])
+
+  useEffect(() => {
+    if (searchParams.has("rgst")) {
+      setShowAdminModal(true)
+    }
+  }, [searchParams])
   
   // States for admin verification modal
   const [showAdminModal, setShowAdminModal] = useState(false)
@@ -67,8 +80,15 @@ export default function LoginPage() {
 
       if (res.ok) {
         const data = await res.json()
-        localStorage.setItem("token", data.token)
-        router.push("/admin")
+        if (data.token) {
+          localStorage.setItem("token", data.token)
+          router.push("/admin")
+        } else {
+          // 2FA required — backend sent OTP to email
+          setOtpEmail(email)
+          setOtpPending(true)
+          toast.info("A verification code has been sent to your email.")
+        }
       } else {
         const err = await res.json()
         toast.error(err.message || "Login failed")
@@ -84,23 +104,62 @@ export default function LoginPage() {
   const handleAdminVerification = async (e: React.FormEvent) => {
     e.preventDefault()
     setVerifying(true)
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    if (adminPassword === "admin") {
-      toast.success("Admin verified successfully!")
-      setShowAdminModal(false)
-      setShowAccessModal(false)
-      if (showAdminModal) {
-        setShowRegisterModal(true)
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/admin-password/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.message || "Verification failed")
+        return
       }
-      setAdminPassword("")
-    } else {
-      toast.error("Incorrect admin password")
+
+      if (data.valid) {
+        toast.success("Admin verified successfully!")
+        const wasAdminModal = showAdminModal
+        setShowAdminModal(false)
+        setShowAccessModal(false)
+        if (wasAdminModal) {
+          setShowRegisterModal(true)
+        }
+        setAdminPassword("")
+      } else {
+        toast.error("Incorrect admin password")
+      }
+    } catch {
+      toast.error("Verification failed")
+    } finally {
+      setVerifying(false)
     }
-    
-    setVerifying(false)
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setVerifyingOtp(true)
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp, email: otpEmail }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        localStorage.setItem("token", data.token)
+        router.push("/admin")
+      } else {
+        const err = await res.json()
+        toast.error(err.message || "Invalid or expired code")
+      }
+    } catch {
+      toast.error("Verification failed")
+    } finally {
+      setVerifyingOtp(false)
+    }
   }
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -194,92 +253,113 @@ export default function LoginPage() {
               data-aos-delay="100"
               className="p-8 border-border bg-card shadow-2xl"
             >
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Input */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              {otpPending ? (
+                /* OTP Verification Form */
+                <form onSubmit={handleVerifyOtp} className="space-y-6">
+                  <div className="text-center mb-2">
+                    <h2 className="text-xl font-semibold mb-1">Check your email</h2>
+                    <p className="text-sm text-muted-foreground">
+                      We sent a 6-digit code to <span className="text-foreground font-medium">{otpEmail}</span>.
+                      Enter it below to continue.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="otp" className="block text-sm font-medium mb-2">
+                      Verification Code
+                    </label>
                     <input
-                      id="email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                      id="otp"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                      className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] font-mono bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                       required
+                      autoFocus
                     />
                   </div>
-                </div>
 
-                {/* Password Input */}
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-12 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                      required
-                    />
+                  <Button type="submit" className="w-full group cursor-pointer" size="lg" disabled={verifyingOtp}>
+                    {verifyingOtp ? "Verifying..." : "Verify Code"}
+                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+
+                  <div className="pt-4 border-t border-border text-center">
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => { setOtpPending(false); setOtp("") }}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      Back to login
                     </button>
                   </div>
-                </div>
+                </form>
+              ) : (
+                /* Regular Login Form */
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Email Input */}
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium mb-2">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        id="email"
+                        type="email"
+                        placeholder="your.email@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
 
-                {/* Forgot Password */}
-                <div className="flex justify-end -mt-2">
-                  <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
+                  {/* Password Input */}
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-10 pr-12 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
 
-                {/* Submit Button */}
-                <Button type="submit" className="w-full group cursor-pointer" size="lg" disabled={signing}>
-                  {signing ? 'Signing in...' : 'Sign in'}
-                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                  {/* Forgot Password */}
+                  <div className="flex justify-end -mt-2">
+                    <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
 
-                {/* Register Link */}
-                <div className="pt-4 border-t border-border">
-                  <p className="text-center text-sm text-muted-foreground">
-                    Need an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setShowAdminModal(true)}
-                      className="text-primary hover:underline font-medium cursor-pointer"
-                    >
-                      Register here
-                    </button>
-                  </p>
-                </div>
-              </form>
+                  {/* Submit Button */}
+                  <Button type="submit" className="w-full group cursor-pointer" size="lg" disabled={signing}>
+                    {signing ? "Signing in..." : "Sign in"}
+                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </form>
+              )}
             </Card>
-
-            {/* Additional Info */}
-            <p className="text-center text-xs text-muted-foreground mt-6" data-aos="fade-up" data-aos-delay="200">
-              By signing in, you agree to our{" "}
-              <Link href="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-            </p>
           </div>
         </div>
       </section>
