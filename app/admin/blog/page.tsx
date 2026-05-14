@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Trash2, Edit, Plus, Star, StarOff, Eye, EyeOff, Calendar } from "lucide-react";
+import { ImageInput } from "@/components/ui/image-input";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { getAuthHeaders } from "@/lib/auth";
@@ -222,12 +223,8 @@ export default function BlogPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium">Image URL</label>
-                <Input
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="https://..."
-                />
+                <label className="text-sm font-medium">Image</label>
+                <ImageInput value={formData.image} onChange={(url) => setFormData({ ...formData, image: url })} />
               </div>
               <Button type="submit" className="w-full">
                 {editingId ? "Update Post" : "Create Post"}

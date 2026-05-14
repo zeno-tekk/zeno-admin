@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Trash2, Edit, Plus, Eye, EyeOff, ExternalLink } from "lucide-react";
+import { ImageInput } from "@/components/ui/image-input";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { getAuthHeaders } from "@/lib/auth";
@@ -144,8 +145,8 @@ export default function ProductsPage() {
                 <Input value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} placeholder="e.g., Web, Mobile, AI/ML" required />
               </div>
               <div>
-                <label className="text-sm font-medium">Image URL</label>
-                <Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." required />
+                <label className="text-sm font-medium">Image</label>
+                <ImageInput value={formData.image} onChange={(url) => setFormData({ ...formData, image: url })} required />
               </div>
               <div>
                 <label className="text-sm font-medium">Project URL (optional)</label>

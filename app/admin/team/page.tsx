@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Trash2, Edit, Plus, Eye, EyeOff } from "lucide-react";
+import { ImageInput } from "@/components/ui/image-input";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { getAuthHeaders } from "@/lib/auth";
@@ -148,8 +149,8 @@ export default function TeamPage() {
                 <Textarea value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} placeholder="Short bio" />
               </div>
               <div>
-                <label className="text-sm font-medium">Image URL</label>
-                <Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." required />
+                <label className="text-sm font-medium">Image</label>
+                <ImageInput value={formData.image} onChange={(url) => setFormData({ ...formData, image: url })} required />
               </div>
               <div>
                 <label className="text-sm font-medium">Email (optional)</label>

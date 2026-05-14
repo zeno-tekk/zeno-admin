@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Trash2, Edit, Plus, Star, Eye, EyeOff } from "lucide-react";
+import { ImageInput } from "@/components/ui/image-input";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { getAuthHeaders } from "@/lib/auth";
@@ -144,8 +145,8 @@ export default function TestimonialsPage() {
                 <Textarea value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} placeholder="Testimonial text" required />
               </div>
               <div>
-                <label className="text-sm font-medium">Client Image URL (optional)</label>
-                <Input value={formData.clientImage} onChange={(e) => setFormData({ ...formData, clientImage: e.target.value })} placeholder="https://..." />
+                <label className="text-sm font-medium">Client Image (optional)</label>
+                <ImageInput value={formData.clientImage} onChange={(url) => setFormData({ ...formData, clientImage: url })} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
